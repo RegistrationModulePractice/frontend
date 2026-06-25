@@ -41,9 +41,7 @@ export function FilterPanel({
 
       <div className="mt-5 grid gap-3 xl:grid-cols-[minmax(0,2.2fr)_repeat(4,minmax(0,1fr))]">
         <label className="relative block xl:col-span-1">
-          <span className="mb-2 block text-xs font-bold uppercase tracking-[0.24em] text-slate-400">
-            Поиск
-          </span>
+          <span className="mb-2 block text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Поиск</span>
           <span className="pointer-events-none absolute left-4 top-[3.25rem] -translate-y-1/2">
             <SearchIcon />
           </span>
@@ -57,9 +55,7 @@ export function FilterPanel({
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-xs font-bold uppercase tracking-[0.24em] text-slate-400">
-            Отрасль
-          </span>
+          <span className="mb-2 block text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Отрасль</span>
           <select
             value={filters.industry}
             onChange={(event) => onFilterChange('industry', event.target.value)}
@@ -75,9 +71,7 @@ export function FilterPanel({
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-xs font-bold uppercase tracking-[0.24em] text-slate-400">
-            Тип услуг
-          </span>
+          <span className="mb-2 block text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Тип услуг</span>
           <select
             value={filters.serviceType}
             onChange={(event) => onFilterChange('serviceType', event.target.value)}
@@ -93,9 +87,7 @@ export function FilterPanel({
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-xs font-bold uppercase tracking-[0.24em] text-slate-400">
-            Регион
-          </span>
+          <span className="mb-2 block text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Регион</span>
           <select
             value={filters.region}
             onChange={(event) => onFilterChange('region', event.target.value)}
@@ -111,9 +103,7 @@ export function FilterPanel({
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-xs font-bold uppercase tracking-[0.24em] text-slate-400">
-            Город
-          </span>
+          <span className="mb-2 block text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Город</span>
           <select
             value={filters.city}
             onChange={(event) => onFilterChange('city', event.target.value)}

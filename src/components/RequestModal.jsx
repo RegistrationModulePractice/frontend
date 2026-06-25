@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-
-const timeOptions = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+import { createMeetingRequest } from '../api';
 
 function getInitialForm(company) {
   return {
@@ -62,7 +61,7 @@ function normalizePhone(value) {
   return result;
 }
 
-function validateForm(form, conferenceDates) {
+function validateForm(form, conferenceDates, timeOptions) {
   const errors = {};
 
   if (!form.companyId || !form.companyName) {
@@ -116,23 +115,14 @@ function fieldClasses(hasError) {
   }`;
 }
 
-async function fakeSubmitRequest(form) {
-  await new Promise((resolve) => {
-    setTimeout(resolve, 1200);
-  });
-
-  if (form.email.toLowerCase().includes('fail-demo')) {
-    throw new Error('Демо-отправка вернула ошибку. Попробуйте снова.');
-  }
-}
-
-export function RequestModal({ isOpen, company, conferenceDates, onClose }) {
+export function RequestModal({ isOpen, company, conferenceDates, timeOptions, onClose }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(getInitialForm(company));
   const [touched, setTouched] = useState({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitState, setSubmitState] = useState('idle');
   const [submitError, setSubmitError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -166,6 +156,7 @@ export function RequestModal({ isOpen, company, conferenceDates, onClose }) {
     setSubmitAttempted(false);
     setSubmitState('idle');
     setSubmitError('');
+    setSuccessMessage('');
     setIsSubmitting(false);
     setForm(getInitialForm(company));
   }, [company, isOpen]);
@@ -174,7 +165,7 @@ export function RequestModal({ isOpen, company, conferenceDates, onClose }) {
     return null;
   }
 
-  const errors = validateForm(form, conferenceDates);
+  const errors = validateForm(form, conferenceDates, timeOptions);
   const stepOneFields = ['initiatorName', 'phone', 'email', 'consent'];
   const stepTwoFields = ['companyName', 'date', 'time', 'topic', 'request'];
   const stepOneHasErrors = stepOneFields.some((field) => errors[field]);
@@ -226,7 +217,8 @@ export function RequestModal({ isOpen, company, conferenceDates, onClose }) {
     setSubmitError('');
 
     try {
-      await fakeSubmitRequest(form);
+      const response = await createMeetingRequest(form);
+      setSuccessMessage(response.message || 'Заявка принята.');
       setSubmitState('success');
     } catch (error) {
       setSubmitState('error');
@@ -265,7 +257,7 @@ export function RequestModal({ isOpen, company, conferenceDates, onClose }) {
           </h3>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-white/80">
             {submitState === 'success'
-              ? 'В демо-версии заявка сохраняется на клиенте. На следующем этапе сюда подключаются CRM Tilda и email-уведомления.'
+              ? 'Заявка уже сохранена на backend. На следующем этапе сюда подключим CRM Tilda и email-уведомления.'
               : 'Форма разбита на 2 шага, компания подставляется автоматически, а время ограничено днями конференции.'}
           </p>
         </div>
@@ -277,6 +269,7 @@ export function RequestModal({ isOpen, company, conferenceDates, onClose }) {
                 ✓
               </div>
               <h4 className="mt-5 font-display text-2xl font-bold text-brand-ink">Представитель скоро свяжется с вами</h4>
+              <p className="mt-3 text-sm font-semibold text-emerald-700">{successMessage}</p>
               <p className="mt-3 text-sm leading-6 text-slate-600">
                 Компания: <span className="font-semibold text-slate-800">{form.companyName}</span>
                 <br />
@@ -297,6 +290,7 @@ export function RequestModal({ isOpen, company, conferenceDates, onClose }) {
                   setTouched({});
                   setSubmitAttempted(false);
                   setSubmitState('idle');
+                  setSuccessMessage('');
                   setForm(getInitialForm(company));
                 }}
                 className="rounded-full border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 hover:border-sky-300 hover:text-brand-blue"
@@ -519,7 +513,8 @@ export function RequestModal({ isOpen, company, conferenceDates, onClose }) {
 
             <div className="mt-8 flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm leading-6 text-slate-500">
-                Демо-режим: интеграция с CRM, email-копией и reCAPTCHA пока не подключена, но UI и валидация уже готовы.
+                Сейчас форма уходит в Express backend и валидируется на сервере. Интеграции с CRM, email-копией и
+                reCAPTCHA подключим следующим этапом.
               </p>
 
               <div className="flex flex-col gap-3 sm:flex-row">

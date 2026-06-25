@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { fetchCatalog } from './api';
 import { CompanyCard } from './components/CompanyCard';
 import { FilterPanel } from './components/FilterPanel';
 import { Header } from './components/Header';
 import { RequestModal } from './components/RequestModal';
-import { companies, conferenceDates } from './data/companies';
 
 const defaultFilters = {
   industry: '',
@@ -12,15 +12,55 @@ const defaultFilters = {
   city: '',
 };
 
+function getUniqueOptions(items, key) {
+  return [...new Set(items.map((item) => item[key]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+}
+
 function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState(defaultFilters);
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [conferenceDates, setConferenceDates] = useState([]);
+  const [timeOptions, setTimeOptions] = useState([]);
+  const [catalogStatus, setCatalogStatus] = useState('loading');
+  const [catalogError, setCatalogError] = useState('');
 
-  const industryOptions = [...new Set(companies.map((company) => company.industry))].sort((a, b) => a.localeCompare(b));
-  const serviceOptions = [...new Set(companies.map((company) => company.serviceType))].sort((a, b) => a.localeCompare(b));
-  const regionOptions = [...new Set(companies.map((company) => company.region))].sort((a, b) => a.localeCompare(b));
-  const cityOptions = [...new Set(companies.map((company) => company.city))].sort((a, b) => a.localeCompare(b));
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadCatalog = async () => {
+      setCatalogStatus('loading');
+      setCatalogError('');
+
+      try {
+        const catalog = await fetchCatalog({ signal: controller.signal });
+
+        setCompanies(catalog.companies);
+        setConferenceDates(catalog.conferenceDates);
+        setTimeOptions(catalog.timeOptions);
+        setCatalogStatus('success');
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          return;
+        }
+
+        setCatalogStatus('error');
+        setCatalogError(error instanceof Error ? error.message : 'Не удалось загрузить каталог компаний.');
+      }
+    };
+
+    loadCatalog();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  const industryOptions = getUniqueOptions(companies, 'industry');
+  const serviceOptions = getUniqueOptions(companies, 'serviceType');
+  const regionOptions = getUniqueOptions(companies, 'region');
+  const cityOptions = getUniqueOptions(companies, 'city');
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const filteredCompanies = companies.filter((company) => {
@@ -66,15 +106,21 @@ function App() {
     setFilters(defaultFilters);
   };
 
+  const reloadPage = () => {
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen pb-16">
-      <main className="mx-auto max-w-[1440px] px-4 pt-4 sm:px-6 lg:px-8">
-        <section className="overflow-hidden rounded-[36px] border border-white/60 shadow-panel">
-          <div className="bg-gradient-to-r from-[#67bae8] via-[#0b97d5] to-[#0d6ba2]">
-            <Header />
-          </div>
+      <div className="bg-gradient-to-r from-[#67bae8] via-[#0b97d5] to-[#0d6ba2]">
+        <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+          <Header />
+        </div>
+      </div>
 
-          <div className="relative overflow-hidden bg-[linear-gradient(180deg,#d2d6dc_0%,#d8dce2_100%)] px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+      <main className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden py-4 sm:py-6">
+          <div className="relative overflow-hidden px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.38),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(13,107,162,0.16),transparent_35%)]" />
 
             <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-start">
@@ -86,8 +132,8 @@ function App() {
                   конференции
                 </h1>
                 <p className="mt-6 max-w-2xl text-base leading-7 text-slate-700 sm:text-lg">
-                  Каталог помогает быстро найти нужную компанию, отфильтровать участников по отрасли и региону и
-                  оставить заявку на встречу в удобное окно конференции.
+                  Каталог помогает быстро найти нужную компанию, отфильтровать участников по отрасли и региону и оставить
+                  заявку на встречу в удобное окно конференции.
                 </p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
@@ -104,7 +150,7 @@ function App() {
               </div>
 
               <div className="animate-float-soft rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-card backdrop-blur sm:p-6">
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Демо-конфигурация</p>
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Конфигурация API</p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
                   <div className="rounded-3xl bg-slate-900 px-5 py-4 text-white">
                     <div className="text-3xl font-extrabold">{companies.length}</div>
@@ -135,6 +181,20 @@ function App() {
                 </div>
               </div>
             </div>
+
+            {catalogStatus === 'error' ? (
+              <div className="relative mt-6 rounded-[28px] border border-rose-200 bg-rose-50/90 p-5 text-rose-700 shadow-card">
+                <p className="text-sm font-bold uppercase tracking-[0.22em]">Ошибка загрузки каталога</p>
+                <p className="mt-3 text-sm leading-6">{catalogError}</p>
+                <button
+                  type="button"
+                  onClick={reloadPage}
+                  className="mt-4 rounded-full bg-rose-600 px-4 py-2 text-sm font-bold text-white hover:bg-rose-700"
+                >
+                  Обновить страницу
+                </button>
+              </div>
+            ) : null}
 
             <div className="relative mt-8">
               <FilterPanel
@@ -169,7 +229,15 @@ function App() {
             </p>
           </div>
 
-          {filteredCompanies.length > 0 ? (
+          {catalogStatus === 'loading' ? (
+            <div className="mt-8 rounded-[30px] border border-slate-200 bg-white/80 p-8 text-center shadow-card">
+              <p className="text-sm font-bold uppercase tracking-[0.24em] text-slate-400">Загружаем данные</p>
+              <h3 className="mt-3 font-display text-2xl font-bold text-brand-ink">Подтягиваем каталог компаний с backend</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-500">
+                После ответа API здесь появятся карточки компаний, фильтры и доступные слоты для записи на встречу.
+              </p>
+            </div>
+          ) : filteredCompanies.length > 0 ? (
             <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {filteredCompanies.map((company, index) => (
                 <CompanyCard key={company.id} company={company} index={index} onRequest={setSelectedCompany} />
@@ -226,14 +294,15 @@ function App() {
       </main>
 
       <footer className="mx-auto mt-10 max-w-[1440px] px-4 text-sm text-slate-500 sm:px-6 lg:px-8">
-        Демо-версия на React + Vite + Tailwind CSS. Данные компаний захардкожены для примера, интеграции с CRM и почтой
-        можно подключить следующим этапом.
+        Демо-версия на React + Vite + Tailwind CSS. Каталог и прием заявок теперь идут через Express API, а интеграции с
+        CRM и почтой можно подключить следующим этапом.
       </footer>
 
       <RequestModal
         isOpen={Boolean(selectedCompany)}
         company={selectedCompany}
         conferenceDates={conferenceDates}
+        timeOptions={timeOptions}
         onClose={() => setSelectedCompany(null)}
       />
     </div>

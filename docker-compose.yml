@@ -1,9 +1,22 @@
 services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: bts-meeting-api
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      PORT: 3000
+
   bts-meeting-catalog:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: bts-meeting-catalog
     restart: unless-stopped
+    depends_on:
+      - backend
     ports:
       - "${APP_PORT:-5173}:5173"
