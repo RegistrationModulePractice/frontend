@@ -1,0 +1,9 @@
+services:
+  bts-meeting-catalog:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bts-meeting-catalog
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-5173}:5173"

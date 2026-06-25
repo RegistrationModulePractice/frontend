@@ -1,0 +1,8 @@
+node_modules
+dist
+tmp
+.git
+.agents
+.codex
+*.pdf
+npm-debug.log*
