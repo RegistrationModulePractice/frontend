@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createMeetingRequest } from '../api';
 
-const TILDA_PARENT_URL = 'https://brightly-idyllic-hornet.tilda.ws/';
-const TILDA_PARENT_ORIGIN = new URL(TILDA_PARENT_URL).origin;
+const TILDA_PARENT_ORIGIN = import.meta.env.TILDA_PARENT_ORIGIN || 'https://your-tilda-domain.ru';
 
 function getInitialForm(company) {
   return {
@@ -90,6 +89,8 @@ function submitMeetingRequestToTilda(company, form) {
         targetCompanyId: buildTargetCompanyId(company),
         targetCompanyName: company.name,
         targetCompanyInn: company.inn,
+        targetCompanyServiceType: company.serviceType,
+        targetCompanyRegion: company.region,
         initiatorName: form.initiatorName.trim(),
         initiatorPosition: form.initiatorPosition.trim(),
         initiatorEmail: form.email.trim(),

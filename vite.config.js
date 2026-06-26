@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       'import.meta.env.API_URL': JSON.stringify(env.API_URL ?? ''),
+      'import.meta.env.TILDA_PARENT_ORIGIN': JSON.stringify(env.TILDA_PARENT_ORIGIN ?? ''),
     },
     server: {
       proxy: {
