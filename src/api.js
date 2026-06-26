@@ -1,3 +1,9 @@
+const API_BASE_URL = (import.meta.env.API_URL || '').trim().replace(/\/+$/, '');
+
+function buildApiUrl(path) {
+  return API_BASE_URL ? `${API_BASE_URL}${path}` : path;
+}
+
 async function readResponse(response) {
   const contentType = response.headers.get('content-type') ?? '';
 
@@ -18,7 +24,7 @@ function createApiError(response, payload, fallbackMessage) {
 }
 
 export async function fetchCatalog({ signal } = {}) {
-  const response = await fetch('/api/catalog', {
+  const response = await fetch(buildApiUrl('/api/catalog'), {
     method: 'GET',
     signal,
   });
@@ -36,7 +42,7 @@ export async function fetchCatalog({ signal } = {}) {
 }
 
 export async function createMeetingRequest(form) {
-  const response = await fetch('/api/meeting-requests', {
+  const response = await fetch(buildApiUrl('/api/meeting-requests'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
