@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import { createMeetingRequest } from '../api';
 
+const TILDA_PARENT_URL = 'https://brightly-idyllic-hornet.tilda.ws/';
+const TILDA_PARENT_ORIGIN = new URL(TILDA_PARENT_URL).origin;
+
 function getInitialForm(company) {
   return {
     companyId: company?.id ?? '',
     companyName: company?.name ?? '',
     initiatorName: '',
+    initiatorPosition: '',
+    initiatorCity: '',
     phone: '+7 ',
     email: '',
     date: '',
@@ -59,6 +64,45 @@ function normalizePhone(value) {
   }
 
   return result;
+}
+
+function buildTargetCompanyId(company) {
+  return `company_${String(company?.id ?? '').padStart(3, '0')}`;
+}
+
+function buildMeetingDateTime(form) {
+  if (!form.date || !form.time) {
+    return '';
+  }
+
+  return `${form.date} ${form.time}`;
+}
+
+function submitMeetingRequestToTilda(company, form) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.parent.postMessage(
+    {
+      type: 'MEETING_REQUEST_SUBMIT',
+      payload: {
+        targetCompanyId: buildTargetCompanyId(company),
+        targetCompanyName: company.name,
+        targetCompanyInn: company.inn,
+        initiatorName: form.initiatorName.trim(),
+        initiatorPosition: form.initiatorPosition.trim(),
+        initiatorEmail: form.email.trim(),
+        initiatorPhone: form.phone.trim(),
+        initiatorCity: form.initiatorCity.trim(),
+        meetingDateTime: buildMeetingDateTime(form),
+        meetingTopic: form.topic.trim(),
+        meetingRequest: form.request.trim(),
+        personalDataAgreement: form.consent,
+      },
+    },
+    TILDA_PARENT_ORIGIN,
+  );
 }
 
 function validateForm(form, conferenceDates, timeOptions) {
@@ -166,7 +210,7 @@ export function RequestModal({ isOpen, company, conferenceDates, timeOptions, on
   }
 
   const errors = validateForm(form, conferenceDates, timeOptions);
-  const stepOneFields = ['initiatorName', 'phone', 'email', 'consent'];
+  const stepOneFields = ['initiatorName', 'initiatorPosition', 'initiatorCity', 'phone', 'email', 'consent'];
   const stepTwoFields = ['companyName', 'date', 'time', 'topic', 'request'];
   const stepOneHasErrors = stepOneFields.some((field) => errors[field]);
   const hasFormErrors = Object.keys(errors).length > 0;
@@ -217,7 +261,11 @@ export function RequestModal({ isOpen, company, conferenceDates, timeOptions, on
     setSubmitError('');
 
     try {
-      const response = await createMeetingRequest(form);
+      const [response] = await Promise.all([
+        createMeetingRequest(form),
+        Promise.resolve().then(() => submitMeetingRequestToTilda(company, form)),
+      ]);
+
       setSuccessMessage(response.message || 'Заявка принята.');
       setSubmitState('success');
     } catch (error) {
@@ -257,8 +305,8 @@ export function RequestModal({ isOpen, company, conferenceDates, timeOptions, on
           </h3>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-white/80">
             {submitState === 'success'
-              ? 'Заявка уже сохранена на backend. На следующем этапе сюда подключим CRM Tilda и email-уведомления.'
-              : 'Форма разбита на 2 шага, компания подставляется автоматически, а время ограничено днями конференции.'}
+              ? 'Заявка сохранена на backend, а сигнал для невидимой формы Tilda отправлен через postMessage.'
+              : 'Форма разбита на 2 шага, компания подставляется автоматически, а при отправке запускаются backend-запрос и сигнал в Tilda.'}
           </p>
         </div>
 
@@ -360,6 +408,32 @@ export function RequestModal({ isOpen, company, conferenceDates, timeOptions, on
                   {showError('initiatorName') ? (
                     <p className="mt-2 text-sm font-medium text-rose-600">{showError('initiatorName')}</p>
                   ) : null}
+                </label>
+
+                <label>
+                  <span className="text-sm font-semibold text-slate-600">Должность</span>
+                  <input
+                    type="text"
+                    name="initiatorPosition"
+                    value={form.initiatorPosition}
+                    onChange={handleChange}
+                    onBlur={() => markTouched(['initiatorPosition'])}
+                    placeholder="Например, директор по продажам"
+                    className={fieldClasses(Boolean(showError('initiatorPosition')))}
+                  />
+                </label>
+
+                <label>
+                  <span className="text-sm font-semibold text-slate-600">Город</span>
+                  <input
+                    type="text"
+                    name="initiatorCity"
+                    value={form.initiatorCity}
+                    onChange={handleChange}
+                    onBlur={() => markTouched(['initiatorCity'])}
+                    placeholder="Например, Москва"
+                    className={fieldClasses(Boolean(showError('initiatorCity')))}
+                  />
                 </label>
 
                 <label>
@@ -482,7 +556,7 @@ export function RequestModal({ isOpen, company, conferenceDates, timeOptions, on
                     value={form.topic}
                     onChange={handleChange}
                     onBlur={() => markTouched(['topic'])}
-                    placeholder="Например, совместный запуск линейки или поставки упаковки"
+                    placeholder="Например, обсуждение сотрудничества"
                     className={fieldClasses(Boolean(showError('topic')))}
                   />
                   {showError('topic') ? (
@@ -513,8 +587,8 @@ export function RequestModal({ isOpen, company, conferenceDates, timeOptions, on
 
             <div className="mt-8 flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm leading-6 text-slate-500">
-                Сейчас форма уходит в Express backend и валидируется на сервере. Интеграции с CRM, email-копией и
-                reCAPTCHA подключим следующим этапом.
+                Сейчас при отправке форма одновременно уходит в Express backend и отправляет событие в родительскую
+                Tilda-страницу через `window.parent.postMessage(...)`.
               </p>
 
               <div className="flex flex-col gap-3 sm:flex-row">
