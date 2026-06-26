@@ -119,22 +119,16 @@ function App() {
       </div>
 
       <main className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden py-4 sm:py-6">
-          <div className="relative overflow-hidden px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.38),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(13,107,162,0.16),transparent_35%)]" />
-
+        <section className="relative overflow-visible py-4 sm:py-6">
+          <div className="relative overflow-visible py-8 sm:py-10 lg:py-12">
+            {/* <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.38),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(13,107,162,0.16),transparent_35%)]" /> */}
             <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-start">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.32em] text-slate-500">Страница + блок на главной</p>
                 <h1 className="mt-5 max-w-3xl font-display text-4xl font-extrabold uppercase leading-[0.95] tracking-tight text-white sm:text-5xl lg:text-6xl">
                   Участники
                   <br />
                   конференции
                 </h1>
-                <p className="mt-6 max-w-2xl text-base leading-7 text-slate-700 sm:text-lg">
-                  Каталог помогает быстро найти нужную компанию, отфильтровать участников по отрасли и региону и оставить
-                  заявку на встречу в удобное окно конференции.
-                </p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
                   <a
@@ -149,7 +143,7 @@ function App() {
                 </div>
               </div>
 
-              <div className="animate-float-soft rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-card backdrop-blur sm:p-6">
+              <div className="rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-card backdrop-blur sm:p-6">
                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Конфигурация API</p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
                   <div className="rounded-3xl bg-slate-900 px-5 py-4 text-white">
@@ -218,15 +212,11 @@ function App() {
         <section id="catalog" className="mt-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">Сетка участников</p>
+              {/* <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">Сетка участников</p> */}
               <h2 className="mt-3 font-display text-3xl font-bold text-brand-ink sm:text-4xl">
                 Компании для деловых встреч
               </h2>
             </div>
-            <p className="max-w-xl text-sm leading-6 text-slate-500">
-              Карточки спроектированы под витринный каталог: логотип, название, краткое описание, теги и быстрая запись
-              в модальном окне.
-            </p>
           </div>
 
           {catalogStatus === 'loading' ? (
@@ -238,7 +228,7 @@ function App() {
               </p>
             </div>
           ) : filteredCompanies.length > 0 ? (
-            <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {filteredCompanies.map((company, index) => (
                 <CompanyCard key={company.id} company={company} index={index} onRequest={setSelectedCompany} />
               ))}

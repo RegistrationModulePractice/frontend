@@ -42,7 +42,7 @@ export function FilterPanel({
       <div className="mt-5 grid gap-3 xl:grid-cols-[minmax(0,2.2fr)_repeat(4,minmax(0,1fr))]">
         <label className="relative block xl:col-span-1">
           <span className="mb-2 block text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Поиск</span>
-          <span className="pointer-events-none absolute left-4 top-[3.25rem] -translate-y-1/2">
+          <span className="pointer-events-none absolute left-4 top-[3.25rem] -translate-y-[75%]">
             <SearchIcon />
           </span>
           <input
