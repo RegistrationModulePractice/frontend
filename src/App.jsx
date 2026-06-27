@@ -147,13 +147,10 @@ function App() {
                   >
                     Смотреть каталог
                   </a>
-                  <span className="rounded-full border border-slate-200 bg-slate-50/90 px-5 py-3 text-sm font-semibold text-slate-600 backdrop-blur">
-                    Поиск по названию, ИНН и ключевым словам
-                  </span>
                 </div>
               </div>
 
-              <div className="rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-card backdrop-blur sm:p-6">
+              {/* <div className="rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-card backdrop-blur sm:p-6">
                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Конфигурация API</p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
                   <div className="rounded-3xl bg-slate-900 px-5 py-4 text-white">
@@ -183,7 +180,7 @@ function App() {
                     ))}
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {catalogStatus === 'error' ? (
