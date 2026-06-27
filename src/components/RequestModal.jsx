@@ -342,14 +342,14 @@ export function RequestModal({ isOpen, company, conferenceDates, timeOptions, on
                   setSuccessMessage('');
                   setForm(getInitialForm(company));
                 }}
-                className="rounded-full border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 hover:border-sky-300 hover:text-brand-blue"
+                className="rounded-full border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 hover:border-brand-primary hover:text-brand-primary"
               >
                 Заполнить заново
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full bg-brand-blue px-5 py-3 text-sm font-bold text-white hover:bg-sky-600"
+                className="rounded-full bg-brand-primary px-5 py-3 text-sm font-bold text-white hover:bg-brand-primary-dark"
               >
                 Закрыть
               </button>
@@ -363,7 +363,7 @@ export function RequestModal({ isOpen, company, conferenceDates, timeOptions, on
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-full border text-sm font-bold ${
                       step === stepNumber
-                        ? 'border-brand-blue bg-brand-blue text-white'
+                        ? 'border-brand-primary bg-brand-primary text-white'
                         : 'border-slate-200 bg-white text-slate-400'
                     }`}
                   >
@@ -477,7 +477,7 @@ export function RequestModal({ isOpen, company, conferenceDates, timeOptions, on
                       checked={form.consent}
                       onChange={handleChange}
                       onBlur={() => markTouched(['consent'])}
-                      className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-blue focus:ring-sky-400"
+                      className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-primary focus:ring-brand-primary"
                     />
                     <span className="text-sm leading-6 text-slate-600">
                       Даю согласие на обработку персональных данных в рамках 152-ФЗ для связи по заявке на встречу.
@@ -597,7 +597,7 @@ export function RequestModal({ isOpen, company, conferenceDates, timeOptions, on
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="rounded-full border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 hover:border-sky-300 hover:text-brand-blue"
+                    className="rounded-full border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 hover:border-brand-primary hover:text-brand-primary"
                   >
                     Назад
                   </button>
@@ -607,7 +607,7 @@ export function RequestModal({ isOpen, company, conferenceDates, timeOptions, on
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="rounded-full bg-brand-blue px-5 py-3 text-sm font-bold text-white hover:bg-sky-600"
+                    className="rounded-full bg-brand-primary px-5 py-3 text-sm font-bold text-white hover:bg-brand-primary-dark"
                   >
                     Продолжить
                   </button>
@@ -615,7 +615,7 @@ export function RequestModal({ isOpen, company, conferenceDates, timeOptions, on
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="rounded-full bg-brand-blue px-5 py-3 text-sm font-bold text-white hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-slate-400"
+                    className="rounded-full bg-brand-primary px-5 py-3 text-sm font-bold text-white hover:bg-brand-primary-dark disabled:cursor-not-allowed disabled:bg-slate-400"
                   >
                     {isSubmitting ? 'Отправляем...' : 'Назначить встречу'}
                   </button>

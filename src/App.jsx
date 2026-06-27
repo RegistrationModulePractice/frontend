@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
-import { fetchCatalog } from './api';
+import { useDeferredValue, useEffect, useState } from 'react';
+import { fetchCatalog, getDefaultCatalogMeta, getDefaultFilterOptions } from './api';
 import { CompanyCard } from './components/CompanyCard';
 import { FilterPanel } from './components/FilterPanel';
 import { Header } from './components/Header';
+import { Pagination } from './components/Pagination';
 import { RequestModal } from './components/RequestModal';
 
 const defaultFilters = {
@@ -12,17 +13,21 @@ const defaultFilters = {
   city: '',
 };
 
-function getUniqueOptions(items, key) {
-  return [...new Set(items.map((item) => item[key]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-}
+const defaultCatalogMeta = getDefaultCatalogMeta();
+const defaultFilterOptions = getDefaultFilterOptions();
+const catalogPageSize = 12;
 
 function App() {
   const [searchTerm, setSearchTerm] = useState('');
+  const deferredSearchTerm = useDeferredValue(searchTerm);
   const [filters, setFilters] = useState(defaultFilters);
+  const [currentPage, setCurrentPage] = useState(defaultCatalogMeta.page);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [conferenceDates, setConferenceDates] = useState([]);
   const [timeOptions, setTimeOptions] = useState([]);
+  const [filterOptions, setFilterOptions] = useState(defaultFilterOptions);
+  const [catalogMeta, setCatalogMeta] = useState(defaultCatalogMeta);
   const [catalogStatus, setCatalogStatus] = useState('loading');
   const [catalogError, setCatalogError] = useState('');
 
@@ -34,12 +39,27 @@ function App() {
       setCatalogError('');
 
       try {
-        const catalog = await fetchCatalog({ signal: controller.signal });
+        const catalog = await fetchCatalog({
+          signal: controller.signal,
+          page: currentPage,
+          pageSize: catalogPageSize,
+          search: deferredSearchTerm,
+          industry: filters.industry,
+          serviceType: filters.serviceType,
+          region: filters.region,
+          city: filters.city,
+        });
 
         setCompanies(catalog.companies);
         setConferenceDates(catalog.conferenceDates);
         setTimeOptions(catalog.timeOptions);
+        setFilterOptions(catalog.filterOptions);
+        setCatalogMeta(catalog.meta);
         setCatalogStatus('success');
+
+        if (catalog.meta.page !== currentPage) {
+          setCurrentPage(catalog.meta.page);
+        }
       } catch (error) {
         if (error.name === 'AbortError') {
           return;
@@ -55,36 +75,12 @@ function App() {
     return () => {
       controller.abort();
     };
-  }, []);
+  }, [currentPage, deferredSearchTerm, filters.city, filters.industry, filters.region, filters.serviceType]);
 
-  const industryOptions = getUniqueOptions(companies, 'industry');
-  const serviceOptions = getUniqueOptions(companies, 'serviceType');
-  const regionOptions = getUniqueOptions(companies, 'region');
-  const cityOptions = getUniqueOptions(companies, 'city');
-
-  const normalizedSearch = searchTerm.trim().toLowerCase();
-  const filteredCompanies = companies.filter((company) => {
-    const haystack = [
-      company.name,
-      company.inn,
-      company.description,
-      company.industry,
-      company.serviceType,
-      company.region,
-      company.city,
-      ...company.keywords,
-    ]
-      .join(' ')
-      .toLowerCase();
-
-    return (
-      (!normalizedSearch || haystack.includes(normalizedSearch)) &&
-      (!filters.industry || company.industry === filters.industry) &&
-      (!filters.serviceType || company.serviceType === filters.serviceType) &&
-      (!filters.region || company.region === filters.region) &&
-      (!filters.city || company.city === filters.city)
-    );
-  });
+  const industryOptions = filterOptions.industries;
+  const serviceOptions = filterOptions.serviceTypes;
+  const regionOptions = filterOptions.regions;
+  const cityOptions = filterOptions.cities;
 
   const activeFilters = [
     searchTerm ? `Поиск: ${searchTerm}` : null,
@@ -94,16 +90,31 @@ function App() {
     filters.city ? `Город: ${filters.city}` : null,
   ].filter(Boolean);
 
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
   const handleFilterChange = (name, value) => {
     setFilters((current) => ({
       ...current,
       [name]: value,
     }));
+    setCurrentPage(1);
   };
 
   const clearFilters = () => {
     setSearchTerm('');
     setFilters(defaultFilters);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => {
+    if (page < 1 || page === currentPage || page > Math.max(catalogMeta.totalPages, 1)) {
+      return;
+    }
+
+    setCurrentPage(page);
   };
 
   const reloadPage = () => {
@@ -121,10 +132,9 @@ function App() {
       <main className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
         <section className="relative overflow-visible py-4 sm:py-6">
           <div className="relative overflow-visible py-8 sm:py-10 lg:py-12">
-            {/* <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.38),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(13,107,162,0.16),transparent_35%)]" /> */}
             <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-start">
               <div>
-                <h1 className="mt-5 max-w-3xl font-display text-4xl font-extrabold uppercase leading-[0.95] tracking-tight text-white sm:text-5xl lg:text-6xl">
+                <h1 className="mt-5 max-w-3xl font-display text-4xl font-extrabold uppercase leading-[0.95] tracking-tight text-brand-ink sm:text-5xl lg:text-6xl">
                   Участники
                   <br />
                   конференции
@@ -133,11 +143,11 @@ function App() {
                 <div className="mt-8 flex flex-wrap gap-3">
                   <a
                     href="#catalog"
-                    className="rounded-full bg-brand-blue px-5 py-3 text-sm font-bold text-white shadow-lg shadow-sky-200 hover:-translate-y-0.5 hover:bg-sky-600"
+                    className="rounded-full bg-brand-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-rose-200 hover:-translate-y-0.5 hover:bg-brand-primary-dark"
                   >
                     Смотреть каталог
                   </a>
-                  <span className="rounded-full border border-white/80 bg-white/70 px-5 py-3 text-sm font-semibold text-slate-600 backdrop-blur">
+                  <span className="rounded-full border border-slate-200 bg-slate-50/90 px-5 py-3 text-sm font-semibold text-slate-600 backdrop-blur">
                     Поиск по названию, ИНН и ключевым словам
                   </span>
                 </div>
@@ -147,7 +157,7 @@ function App() {
                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Конфигурация API</p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
                   <div className="rounded-3xl bg-slate-900 px-5 py-4 text-white">
-                    <div className="text-3xl font-extrabold">{companies.length}</div>
+                    <div className="text-3xl font-extrabold">{catalogMeta.totalCompanies}</div>
                     <div className="mt-2 text-sm text-white/70">компаний в каталоге</div>
                   </div>
                   <div className="rounded-3xl bg-sky-50 px-5 py-4 text-brand-ink">
@@ -183,7 +193,7 @@ function App() {
                 <button
                   type="button"
                   onClick={reloadPage}
-                  className="mt-4 rounded-full bg-rose-600 px-4 py-2 text-sm font-bold text-white hover:bg-rose-700"
+                  className="mt-4 rounded-full bg-brand-primary px-4 py-2 text-sm font-bold text-white hover:bg-brand-primary-dark"
                 >
                   Обновить страницу
                 </button>
@@ -193,7 +203,7 @@ function App() {
             <div className="relative mt-8">
               <FilterPanel
                 searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
+                onSearchChange={handleSearchChange}
                 filters={filters}
                 onFilterChange={handleFilterChange}
                 onReset={clearFilters}
@@ -201,8 +211,8 @@ function App() {
                 serviceOptions={serviceOptions}
                 regionOptions={regionOptions}
                 cityOptions={cityOptions}
-                resultsCount={filteredCompanies.length}
-                totalCount={companies.length}
+                resultsCount={catalogMeta.totalItems}
+                totalCount={catalogMeta.totalCompanies}
                 activeFilters={activeFilters}
               />
             </div>
@@ -212,7 +222,6 @@ function App() {
         <section id="catalog" className="mt-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              {/* <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">Сетка участников</p> */}
               <h2 className="mt-3 font-display text-3xl font-bold text-brand-ink sm:text-4xl">
                 Компании для деловых встреч
               </h2>
@@ -224,15 +233,25 @@ function App() {
               <p className="text-sm font-bold uppercase tracking-[0.24em] text-slate-400">Загружаем данные</p>
               <h3 className="mt-3 font-display text-2xl font-bold text-brand-ink">Подтягиваем каталог компаний с backend</h3>
               <p className="mt-3 text-sm leading-6 text-slate-500">
-                После ответа API здесь появятся карточки компаний, фильтры и доступные слоты для записи на встречу.
+                Поиск, фильтры и пагинация теперь обрабатываются на сервере, а здесь показывается только нужная страница каталога.
               </p>
             </div>
-          ) : filteredCompanies.length > 0 ? (
-            <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {filteredCompanies.map((company, index) => (
-                <CompanyCard key={company.id} company={company} index={index} onRequest={setSelectedCompany} />
-              ))}
-            </div>
+          ) : companies.length > 0 ? (
+            <>
+              <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {companies.map((company, index) => (
+                  <CompanyCard key={company.id} company={company} index={index} onRequest={setSelectedCompany} />
+                ))}
+              </div>
+
+              <Pagination
+                page={catalogMeta.page}
+                totalPages={catalogMeta.totalPages}
+                hasPreviousPage={catalogMeta.hasPreviousPage}
+                hasNextPage={catalogMeta.hasNextPage}
+                onPageChange={handlePageChange}
+              />
+            </>
           ) : (
             <div className="mt-8 rounded-[30px] border border-dashed border-slate-300 bg-white/80 p-8 text-center shadow-card">
               <p className="text-sm font-bold uppercase tracking-[0.24em] text-slate-400">Ничего не найдено</p>
@@ -243,7 +262,7 @@ function App() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="mt-6 rounded-full bg-brand-blue px-5 py-3 text-sm font-bold text-white hover:bg-sky-600"
+                className="mt-6 rounded-full bg-brand-primary px-5 py-3 text-sm font-bold text-white hover:bg-brand-primary-dark"
               >
                 Очистить фильтры
               </button>
@@ -257,8 +276,7 @@ function App() {
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/60">Шаг 1</p>
               <h3 className="mt-4 font-display text-2xl font-bold">Найдите нужного участника</h3>
               <p className="mt-3 text-sm leading-6 text-white/70">
-                Работает поиск по названию, ИНН, описанию и ключевым словам. Дополнительно можно выбрать отрасль, тип
-                услуг, регион и город.
+                Работает поиск по названию, ИНН, описанию и ключевым словам. Дополнительно можно выбрать отрасль, тип услуг, регион и город.
               </p>
             </div>
 
@@ -266,8 +284,7 @@ function App() {
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-sky-500">Шаг 2</p>
               <h3 className="mt-4 font-display text-2xl font-bold text-brand-ink">Откройте карточку встречи</h3>
               <p className="mt-3 text-sm leading-6 text-slate-600">
-                Кнопка «Назначить встречу» открывает модальное окно, а выбранная компания подставляется автоматически в
-                форму без дополнительного выбора.
+                Кнопка «Назначить встречу» открывает модальное окно, а выбранная компания подставляется автоматически в форму без дополнительного выбора.
               </p>
             </div>
 
@@ -275,8 +292,7 @@ function App() {
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Шаг 3</p>
               <h3 className="mt-4 font-display text-2xl font-bold text-brand-ink">Заполните заявку в 2 шага</h3>
               <p className="mt-3 text-sm leading-6 text-slate-600">
-                Валидация срабатывает на лету, дата ограничена днями конференции, а после отправки пользователь получает
-                понятное успешное состояние.
+                Валидация срабатывает на лету, дата ограничена днями конференции, а после отправки пользователь получает понятное успешное состояние.
               </p>
             </div>
           </div>
@@ -284,8 +300,7 @@ function App() {
       </main>
 
       <footer className="mx-auto mt-10 max-w-[1440px] px-4 text-sm text-slate-500 sm:px-6 lg:px-8">
-        Демо-версия на React + Vite + Tailwind CSS. Каталог и прием заявок теперь идут через Express API, а интеграции с
-        CRM и почтой можно подключить следующим этапом.
+        Демо-версия на React + Vite + Tailwind CSS. Каталог и прием заявок теперь идут через Express API, а интеграции с CRM и почтой можно подключить следующим этапом.
       </footer>
 
       <RequestModal

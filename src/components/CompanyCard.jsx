@@ -72,7 +72,7 @@ export function CompanyCard({ company, index, onRequest }) {
         <button
           type="button"
           onClick={() => onRequest(company)}
-          className="rounded-full bg-brand-blue px-5 py-3 text-sm font-bold text-white shadow-lg shadow-sky-200 transition hover:-translate-y-0.5 hover:bg-sky-600"
+          className="rounded-full bg-brand-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-rose-200 transition hover:-translate-y-0.5 hover:bg-brand-primary-dark"
         >
           Назначить встречу
         </button>

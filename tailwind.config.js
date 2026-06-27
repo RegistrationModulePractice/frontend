@@ -7,6 +7,8 @@ export default {
         brand: {
           blue: '#0b7db8',
           cyan: '#15a8df',
+          primary: '#E72E2E',
+          'primary-dark': '#D62828',
           slate: '#d7dbe0',
           ink: '#15324e',
           mist: '#f4f7fa',

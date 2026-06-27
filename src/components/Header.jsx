@@ -21,7 +21,7 @@ export function Header() {
 
       <a
         href="#catalog"
-        className="rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur hover:bg-white/20"
+        className="rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-rose-900/20 backdrop-blur hover:bg-brand-primary-dark"
       >
         Каталог
       </a>
