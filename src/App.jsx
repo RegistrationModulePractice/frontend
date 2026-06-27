@@ -199,7 +199,37 @@ function App() {
                 </button>
               </div>
             ) : null}
+          </div>
+        </section>
+        <section className="rounded-[34px] border border-white/70 bg-white/80 p-6 shadow-card backdrop-blur sm:p-8">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="rounded-[28px] bg-slate-900 p-6 text-white">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/60">Шаг 1</p>
+              <h3 className="mt-4 font-display text-2xl font-bold">Найдите нужного участника</h3>
+              <p className="mt-3 text-sm leading-6 text-white/70">
+                Работает поиск по названию, ИНН, описанию и ключевым словам. Дополнительно можно выбрать отрасль, тип услуг, регион и город.
+              </p>
+            </div>
 
+            <div className="rounded-[28px] bg-sky-50 p-6">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-sky-500">Шаг 2</p>
+              <h3 className="mt-4 font-display text-2xl font-bold text-brand-ink">Откройте карточку встречи</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                Кнопка «Назначить встречу» открывает модальное окно, а выбранная компания подставляется автоматически в форму без дополнительного выбора.
+              </p>
+            </div>
+
+            <div className="rounded-[28px] bg-white p-6 ring-1 ring-slate-200">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Шаг 3</p>
+              <h3 className="mt-4 font-display text-2xl font-bold text-brand-ink">Заполните заявку в 2 шага</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                Валидация срабатывает на лету, дата ограничена днями конференции, а после отправки пользователь получает понятное успешное состояние.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section>
+          <div>
             <div className="relative mt-8">
               <FilterPanel
                 searchTerm={searchTerm}
@@ -269,39 +299,7 @@ function App() {
             </div>
           )}
         </section>
-
-        <section className="mt-10 rounded-[34px] border border-white/70 bg-white/80 p-6 shadow-card backdrop-blur sm:p-8">
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="rounded-[28px] bg-slate-900 p-6 text-white">
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/60">Шаг 1</p>
-              <h3 className="mt-4 font-display text-2xl font-bold">Найдите нужного участника</h3>
-              <p className="mt-3 text-sm leading-6 text-white/70">
-                Работает поиск по названию, ИНН, описанию и ключевым словам. Дополнительно можно выбрать отрасль, тип услуг, регион и город.
-              </p>
-            </div>
-
-            <div className="rounded-[28px] bg-sky-50 p-6">
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-sky-500">Шаг 2</p>
-              <h3 className="mt-4 font-display text-2xl font-bold text-brand-ink">Откройте карточку встречи</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Кнопка «Назначить встречу» открывает модальное окно, а выбранная компания подставляется автоматически в форму без дополнительного выбора.
-              </p>
-            </div>
-
-            <div className="rounded-[28px] bg-white p-6 ring-1 ring-slate-200">
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Шаг 3</p>
-              <h3 className="mt-4 font-display text-2xl font-bold text-brand-ink">Заполните заявку в 2 шага</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Валидация срабатывает на лету, дата ограничена днями конференции, а после отправки пользователь получает понятное успешное состояние.
-              </p>
-            </div>
-          </div>
-        </section>
       </main>
-
-      <footer className="mx-auto mt-10 max-w-[1440px] px-4 text-sm text-slate-500 sm:px-6 lg:px-8">
-        Демо-версия на React + Vite + Tailwind CSS. Каталог и прием заявок теперь идут через Express API, а интеграции с CRM и почтой можно подключить следующим этапом.
-      </footer>
 
       <RequestModal
         isOpen={Boolean(selectedCompany)}
